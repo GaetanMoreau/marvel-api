@@ -127,7 +127,7 @@ async created() { //Récupère l'ensemble des héros disponibles
         if(s == 1500){
           this.loadingModal = false;
         }
-        const requete = await fetch("http://gateway.marvel.com/v1/public/characters?offset=" + s + "&limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
+        const requete = await fetch("https://gateway.marvel.com/v1/public/characters?offset=" + s + "&limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
         var resJson = await requete.json();
         for(let i = 0 ; i < resJson.data.results.length ; i ++){
           this.resCharactersEnd.push({"name":resJson.data.results[i].name, "id":resJson.data.results[i].id, "description":resJson.data.results[i].description, "thumbnail":resJson.data.results[i].thumbnail});
@@ -177,7 +177,7 @@ async created() { //Récupère l'ensemble des héros disponibles
       let ts = Date.now();
       let hash = MD5(ts + apiKeyPrivate + apiKeyPublic);
     
-      const response = await fetch("http://gateway.marvel.com/v1/public/characters/" + id + "/comics?limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
+      const response = await fetch("https://gateway.marvel.com/v1/public/characters/" + id + "/comics?limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
       const dataComics = await response.json();
       const allComics = dataComics.data.results;
       
