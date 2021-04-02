@@ -2,8 +2,8 @@
     <div>
       <div class="loading__modal" v-show="loadingModal">
         <div class="loading__modal-container">
-          <h3>Chargement des données en cours...</h3>
-          <p>Chargement de <span class="loading__count">{{loading}}</span> sur 1493.</p>
+          <h3>Récupération des données en cours...</h3>
+          <p>Chargement : <span class="loading__count">{{loading}}</span>/1493.</p>
         </div>
       </div>
 
@@ -25,22 +25,29 @@
         <div class="item__container">
           <ul class="item__list-container">
             <li v-for="value in filteredList" :key="value.id" class="item__list">
-              <img class="item__img" v-on:click="showDetails(value.id);getComics(value.id)" :src="value.thumbnail.path + '.' + value.thumbnail.extension">
-              <p class="item__name">{{value.name}}</p>
+              <div v-on:click="showDetails(value.id);getComics(value.id)" class="item__div">
+                <img class="item__img" :src="value.thumbnail.path + '.' + value.thumbnail.extension">
+                <p class="item__name">{{value.name}}</p>
+              </div>
               <div v-if="show.includes(value.id)" class="modal">
                 <div class="modal__container">
-                  <img class="modal__img" :src="value.thumbnail.path + '.' + value.thumbnail.extension">
-                  <p class="modal__name">{{value.name}}</p>
-                  <p class="modal__content">{{value.description}}</p>
-                  <ol>
-                    <li v-for="comic in comics" :key="comic.name">
-                      <p class="modal__content"><span>Titre</span> : {{comic.name}}</p>
-                      <p class="modal__content"><span>Date :</span> {{comic.date}}</p>
-                      <p class="modal__content"><span>Description :</span> {{comic.description}}</p>
-                    </li>
-                  </ol>
-                  <button class="item__add-btn" v-on:click="addToTeam(value.name)">Ajouter à mon équipe</button>
-                  <button class="modal__close-btn" v-on:click="closeModal()">Fermer</button>
+                  <div class="modal__div-img">
+                    <button class="modal__close-btn" v-on:click="closeModal()">Fermer</button>
+                    <img class="modal__img" :src="value.thumbnail.path + '.' + value.thumbnail.extension">
+                    <button class="item__add-btn" v-on:click="addToTeam(value.name)">Ajouter à mon équipe</button>
+                  </div>
+                  <div class="modal__div-detail">
+                    <p class="modal__name">{{value.name}}</p>
+                    <p class="modal__content">{{value.description}}</p>
+                    <p class="modal__content"><span>Comics dans lequel il apparaît :</span></p>
+                    <ol>
+                      <li v-for="comic in comics" :key="comic.name">
+                        <p class="modal__content"><span>Titre</span> : {{comic.name}}</p>
+                        <p class="modal__content"><span>Date :</span> {{comic.date}}</p>
+                        <p class="modal__content"><span>Description :</span> {{comic.description}}</p>
+                      </li>
+                    </ol>
+                  </div>
                 </div>
               </div>
             </li>
@@ -50,12 +57,18 @@
         <div class="team">
           <div class="team__container">
             <div class="team__save">
-              <input type="text" id="teamName" name="inputTeamName" placeholder="Nom de l'équipe">
-              <button class="team-btn" @click="saveTeam">Sauvegarder</button>
+              <input type="text" id="teamName" class="team__input" name="inputTeamName" placeholder="Nom de l'équipe">
+              <button class="team__btn" @click="saveTeam">Sauvegarder</button>
             </div>
             <ul class="team__list-container">
               <li v-for="hero in team" :key="hero.name">
-                <p class="team__list-item">{{hero}}<span><img class="team__delete-btn" v-on:click="removeFromTeam(hero)" src="../assets/data/delete-icon.svg"></span></p>
+                <p class="team__list-item">{{hero}}
+                  <span>
+                    <img class="team__list-btn" v-on:click="deplaceDown(hero)" src="../assets/data/arrow-down.svg">
+                    <img class="team__list-btn" v-on:click="deplaceUp(hero)" src="../assets/data/arrow-up.svg">
+                    <img class="team__list-btn" v-on:click="removeFromTeam(hero)" src="../assets/data/delete-icon.svg">
+                  </span>
+                </p>
               </li>
             </ul>
             <div class="team__clean">
@@ -70,7 +83,7 @@
           <p class="footer__text">Data provided by Marvel. © 2014 Marvel</p>
         </div>
         <div>
-          <p class="footer__text">Site réalisé par <a href="https://www.alexis-gousseau.com">Alexis Gousseau</a> et <a href="https://www.gaetan-moreau.fr">Gaëtan Moreau</a>.</p>
+          <p class="footer__text">Site réalisé par <a target="_blank" href="https://www.alexis-gousseau.com">Alexis Gousseau</a> et <a target="_blank" href="https://www.gaetan-moreau.fr">Gaëtan Moreau</a>.</p>
         </div>
       </footer>
     </div>
@@ -127,9 +140,12 @@ async created() { //Récupère l'ensemble des héros disponibles
         if(s == 1500){
           this.loadingModal = false;
         }
-        const requete = await fetch("https://gateway.marvel.com/v1/public/characters?offset=" + s + "&limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
+        const requete = await fetch("http://gateway.marvel.com/v1/public/characters?offset=" + s + "&limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
         var resJson = await requete.json();
         for(let i = 0 ; i < resJson.data.results.length ; i ++){
+          if(resJson.data.results[i].description === ""){
+            resJson.data.results[i].description = "Pas de description pour ce héro";
+          }
           this.resCharactersEnd.push({"name":resJson.data.results[i].name, "id":resJson.data.results[i].id, "description":resJson.data.results[i].description, "thumbnail":resJson.data.results[i].thumbnail});
         }
       }
@@ -147,12 +163,14 @@ async created() { //Récupère l'ensemble des héros disponibles
   computed: {
     filteredList() { // Défini le nombre de personnage à afficher sur la page
       var self = this;
-      if(this.search == ''){
-          return this.characters.slice(0, 10);
+      if(this.search.length > 2){
+        return this.characters.filter(function(character){
+          return character.name.toLowerCase().indexOf(self.search.toLowerCase()) >= 0 || character.description.toLowerCase().indexOf(self.search.toLowerCase()) >= 0;
+        });
       }
-      return this.characters.filter(function(character){
-        return character.name.toLowerCase().indexOf(self.search.toLowerCase()) >= 0 || character.description.toLowerCase().indexOf(self.search.toLowerCase()) >= 0;
-      });
+      else{
+        return this.characters.slice(0, 10);
+      }
     },
   },
   methods: {
@@ -177,41 +195,47 @@ async created() { //Récupère l'ensemble des héros disponibles
       let ts = Date.now();
       let hash = MD5(ts + apiKeyPrivate + apiKeyPublic);
     
-      const response = await fetch("https://gateway.marvel.com/v1/public/characters/" + id + "/comics?limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
+      const response = await fetch("http://gateway.marvel.com/v1/public/characters/" + id + "/comics?limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
       const dataComics = await response.json();
       const allComics = dataComics.data.results;
       
-      let allDatesComics = [];
-      for(let i = 0 ; i < allComics.length ; i ++){
-        allDatesComics.push(allComics[i].dates[0].date)
-      }
-      if(allDatesComics.length > 1){
-        var oldest = allDatesComics.reduce(function (pre, cur) { //Retrouve la date la plus ancienne
-          return Date.parse(pre) > Date.parse(cur) ? cur : pre;
-        });
-        var earliest = allDatesComics.reduce(function (pre, cur) { //Retrouve la date la plus récente
-          return Date.parse(pre) < Date.parse(cur) ? cur : pre;
-        });
-
-        this.comics = [];
-        this.resComics = [];
-        for(let j = 0 ; j < allComics.length ; j ++){
-          if(allComics[j].description === null){
-            allComics[j].description = "Pas de description pour ce comic";
-          }
-          if(allComics[j].dates[0].date === oldest){
-            this.resComics.push({"name":allComics[j].title, "date":oldest.split("T")[0], "description":allComics[j].description});
-          }
-          if(allComics[j].dates[0].date === earliest){
-            this.resComics.push({"name":allComics[j].title, "date":earliest.split("T")[0], "description":allComics[j].description});
-          }
+      if(allComics.length > 0){
+        let allDatesComics = [];
+        for(let i = 0 ; i < allComics.length ; i ++){
+          allDatesComics.push(allComics[i].dates[0].date)
         }
-        //Récupère les deux dates (ancienne et récente) dans le cas où plusieurs comics sont apparut le même jour que ces mêmes dates
-        this.comics.push(this.resComics[0]);
-        this.comics.push(this.resComics[this.resComics.length - 1]);
+        if(allDatesComics.length > 1){
+          var oldest = allDatesComics.reduce(function (pre, cur) { //Retrouve la date la plus ancienne
+            return Date.parse(pre) > Date.parse(cur) ? cur : pre;
+          });
+          var earliest = allDatesComics.reduce(function (pre, cur) { //Retrouve la date la plus récente
+            return Date.parse(pre) < Date.parse(cur) ? cur : pre;
+          });
+
+          this.comics = [];
+          this.resComics = [];
+          for(let j = 0 ; j < allComics.length ; j ++){
+            if(allComics[j].description === null){
+              allComics[j].description = "Pas de description pour ce comic";
+            }
+            if(allComics[j].dates[0].date === oldest){
+              this.resComics.push({"name":allComics[j].title, "date":oldest.split("T")[0], "description":allComics[j].description});
+            }
+            if(allComics[j].dates[0].date === earliest){
+              this.resComics.push({"name":allComics[j].title, "date":earliest.split("T")[0], "description":allComics[j].description});
+            }
+          }
+          //Récupère les deux dates (ancienne et récente) dans le cas où plusieurs comics sont apparut le même jour que ces mêmes dates
+          this.comics.push(this.resComics[0]);
+          this.comics.push(this.resComics[this.resComics.length - 1]);
+        }
+        else{
+          this.comics.date = ["Pas d'informations sur les dates"];
+        }   
       }
       else{
-        this.comics = ["Pas d'informations sur les dates"];
+        this.comics = [];
+        this.comics.push({"name":"Pas de comics liés", "date":"Pas de date disponible", "description":"Pas de description disponible"})
       }
     },
     addToTeam(name) { //Ajoute un héro à l'équipe
@@ -219,10 +243,34 @@ async created() { //Récupère l'ensemble des héros disponibles
       this.team.push(name);
     },
     removeFromTeam(hero){ //Supprime un héro de l'équipe
-      if (this.team.includes(hero)) {
+      if(this.team.includes(hero)) {
         this.team = this.team.filter(entry => entry !== hero);
         return; 
       }
+    },
+    deplaceUp(hero){ //Déplace le héro ciblé de l'équipe vers le haut
+      let teamModified = this.team
+      for(let i = 0 ; i < teamModified.length ; i ++) {
+        if(teamModified[i] === hero && teamModified[i - 1] != undefined){
+          let tmp = teamModified[i - 1];
+          teamModified[i - 1] = teamModified[i];
+          teamModified[i] = tmp;
+        }
+      }
+      this.removeAllFromTeam();
+      this.team =  teamModified
+    },
+    deplaceDown(hero){ //Déplace le héro ciblé de l'équipe vers le bas
+      let teamModified = this.team
+      for(let i = teamModified.length - 1 ; i >= 0 ; i --) {
+        if(teamModified[i] === hero && teamModified[i + 1] != undefined){
+          let tmp = teamModified[i + 1];
+          teamModified[i + 1] = teamModified[i];
+          teamModified[i] = tmp;
+        }
+      }
+      this.removeAllFromTeam();
+      this.team =  teamModified
     },
     removeAllFromTeam(){ //Supprime entièrement l'équipe créée
       this.team = [];

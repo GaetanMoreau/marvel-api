@@ -36,6 +36,9 @@ ul{
 ol{
     padding-left: 16px;
 }
+input:focus, button:focus {
+    outline: none;
+}
 /*Header*/
 .header{
     height: 400px;
@@ -84,7 +87,7 @@ ol{
     background: var(--color2);
     border: none;
     padding-left: 1rem;
-}
+ }
 .search-form{
     width: 500px;
 }
@@ -113,21 +116,24 @@ ol{
     flex-direction: row;
     display: flex;
     flex-wrap: wrap;
+    justify-content: space-evenly;
     padding: 0;
 }
 .item__list{
-    margin-right: 1rem;
+    margin: 0 .5rem;
     padding: 0;
+    height: fit-content;
     list-style-type: none;
     border-top: .6rem solid var(--color1);
     margin-bottom: 4rem;
     box-shadow: 0px 10px 10px -9px rgb(0 0 0/ 60%);
 }
-.item__list > img{
+.item__div{
     cursor: pointer;
 }
 .item__name{
-    padding: 1rem 0 0 1rem;
+    padding: 1rem;
+    margin: 0;
     width: 250px;
     white-space: nowrap;
     overflow: hidden;
@@ -136,6 +142,7 @@ ol{
 .item__img{
     height: 250px;
     width: 250px;
+    transform: translateY(-1px);
 }
 /*Team*/
 .team{
@@ -157,12 +164,14 @@ ol{
     margin: 0;
 }
 .team__save{
-    padding: .6rem;
     border-bottom: 2px solid var(--color1);
     display: flex;
     justify-content: space-between;
 }
-.team-btn{
+.team__input{
+    border: none;
+}
+.team__btn{
     text-align: center;
     font-size: 14px;
     color: var(--color2);
@@ -172,14 +181,16 @@ ol{
     transition: all 0.3s ease-in 0s;
     cursor: pointer;
 }
-.team__delete-btn{
+.team__list-btn{
     cursor: pointer;
+    margin-left: .5rem;
+    width: 1rem;
+    height: 1rem;
 }
 .team__clean{
     text-align: center;
 }
 .team__clean-btn, .item__add-btn, .modal__close-btn{
-    margin-bottom: .6rem;
     text-align: center;
     font-size: 14px;
     color: var(--color2);
@@ -193,18 +204,20 @@ ol{
 .team__clean-btn:hover, .team-btn:hover, .item__add-btn:hover, .modal__close-btn:hover{
     background-color:  var(--color4);
 }
+.item__add-btn{
+    margin: 1rem 0;
+    width: 100%;
+}
 /*Modal*/
 .modal{
-    display: block;
+    display: flex;
     position: fixed;
     z-index: 1;
-    padding-top: 70px;
     left: 0;
     top: 0;
     width: 100%;
     height: 100%;
     overflow: auto;
-    background-color: rgb(0,0,0);
     background-color: rgba(0,0,0,0.4);
 }
 .modal__container{
@@ -214,13 +227,21 @@ ol{
     padding: 20px;
     width: 80%;
     position: relative;
+    display: flex;
+    flex-direction: row;
+}
+.modal__div-img{
+    width: 15rem;
+}
+.modal__div-detail{
+    margin-left: 1rem;
 }
 .modal__name{
     font-weight: 700;
-    margin-top: 1rem;
+    margin-top: 0;
 }
 .modal__img{
-    width: 20vw;
+    width: 15rem;
 }
 .modal__close-btn{
     margin-left: 2rem;
@@ -230,6 +251,7 @@ ol{
 }
 .modal__content{
     font-size: 12px;
+    text-align: justify;
 }
 .modal__content span{
     font-weight: 700;
@@ -278,6 +300,21 @@ ol{
     .team{
         width: 100%;
     }
+    .modal__container{
+        flex-direction: column;
+        align-items: center;
+    }
+    .modal__div-detail {
+        margin-left: 0;
+    }
+    .modal__close-btn {
+        width: 100%;
+        margin: 0 0 1rem 0;
+        margin-left: 0;
+        position: relative;
+        top: 0;
+        right: 0;
+    }
 }
 @media(max-width:640px){
     .search-form {
@@ -290,11 +327,11 @@ ol{
         font-size: 24px;
     }
     .item__list{
-        margin-right: 0;
-        margin-bottom: 1rem;
+        margin: 0;
     }
     .item__img, .item__name{
         width: 100%;
+        height: 100%;
     }
 }
 /*Loadin modal*/
