@@ -2,23 +2,23 @@
     <div>
       <div class="loading__modal" v-show="loadingModal">
         <div class="loading__modal-container">
-          <h3>Récupération des données en cours...</h3>
-          <p>Chargement : <span class="loading__count">{{loading}}</span>/1493.</p>
+          <h3>Recovering data in progress...</h3>
+          <p>Loading : <span class="loading__count">{{loading}}</span>/1493.</p>
         </div>
       </div>
 
       <header class="header">
         <h1 class="header__title">Marvel API</h1>
-        <h2 class="header__subtitle">Réaliser votre équipe de rêve</h2>
+        <h2 class="header__subtitle">Create your dream team</h2>
         <div class="search-form">
           <div class="search-form__container">
-            <input placeholder="Rechercher par nom ou description..." class="search-form__input" type="search" title="Rechercher " v-model="search">
-            <button class="search-form__submit" type="submit" title="Rechercher " aria-label="Rechercher ">
+            <input placeholder="Search for a word..." class="search-form__input" type="search" title="Search " v-model="search">
+            <button class="search-form__submit" type="submit" title="Search " aria-label="Search">
               <img src="../assets/data/search-icon.svg" class="search-icon">
             </button>
           </div>
         </div>
-        <button class="header__btn" v-on:click="randomCharacters">Obtenir 10 personnages aléatoirement</button>
+        <button class="header__btn" v-on:click="randomCharacters">Get 10 random characters</button>
       </header>
 
       <section class="main">
@@ -32,17 +32,17 @@
               <div v-if="show.includes(value.id)" class="modal">
                 <div class="modal__container">
                   <div class="modal__div-img">
-                    <button class="modal__close-btn" v-on:click="closeModal()">Fermer</button>
+                    <button class="modal__close-btn" v-on:click="closeModal()">Close</button>
                     <img class="modal__img" :src="value.thumbnail.path + '.' + value.thumbnail.extension">
-                    <button class="item__add-btn" v-on:click="addToTeam(value.name)">Ajouter à mon équipe</button>
+                    <button class="item__add-btn" v-on:click="addToTeam(value.name)">Add to my team</button>
                   </div>
                   <div class="modal__div-detail">
                     <p class="modal__name">{{value.name}}</p>
                     <p class="modal__content">{{value.description}}</p>
-                    <p class="modal__content"><span>Comics dans lequel il apparaît :</span></p>
+                    <p class="modal__content"><span>Comics in which the character appears:</span></p>
                     <ol>
                       <li v-for="comic in comics" :key="comic.name">
-                        <p class="modal__content"><span>Titre</span> : {{comic.name}}</p>
+                        <p class="modal__content"><span>Title :</span> {{comic.name}}</p>
                         <p class="modal__content"><span>Date :</span> {{comic.date}}</p>
                         <p class="modal__content"><span>Description :</span> {{comic.description}}</p>
                       </li>
@@ -57,13 +57,16 @@
         <div class="team">
           <div class="team__container">
             <div class="team__save">
-              <input type="text" id="teamName" class="team__input" name="inputTeamName" placeholder="Nom de l'équipe">
-              <button class="team__btn" @click="saveTeam">Sauvegarder</button>
+              <input type="text" id="teamName" class="team__input" name="inputTeamName" placeholder="Name of the team">
+              <button class="team__btn" @click="saveTeam">Save</button>
             </div>
             <ul class="team__list-container">
+              <li v-show="checkEmptyTeam">
+                <p class="team__list-item">Empty team</p>
+              </li>
               <li v-for="hero in team" :key="hero.name">
                 <p class="team__list-item">{{hero}}
-                  <span>
+                  <span class="team__list-btns">
                     <img class="team__list-btn" v-on:click="deplaceDown(hero)" src="../assets/data/arrow-down.svg">
                     <img class="team__list-btn" v-on:click="deplaceUp(hero)" src="../assets/data/arrow-up.svg">
                     <img class="team__list-btn" v-on:click="removeFromTeam(hero)" src="../assets/data/delete-icon.svg">
@@ -72,18 +75,19 @@
               </li>
             </ul>
             <div class="team__clean">
-              <button class="team__clean-btn" v-on:click="removeAllFromTeam()">Vider</button>
+              <button class="team__clean-btn" v-on:click="removeAllFromTeam()">Clear</button>
             </div>
           </div>
         </div>
       </section>
 
       <footer class="footer">
-        <div>
-          <p class="footer__text">Data provided by Marvel. © 2014 Marvel</p>
+        <div class="footer__content">
+          <a class="footer__top" href="#">Back to top</a>
         </div>
-        <div>
-          <p class="footer__text">Site réalisé par <a target="_blank" href="https://www.alexis-gousseau.com">Alexis Gousseau</a> et <a target="_blank" href="https://www.gaetan-moreau.fr">Gaëtan Moreau</a>.</p>
+        <div class="footer__content">
+          <p class="footer__text">Data provided by Marvel. © 2014 Marvel</p>
+          <p class="footer__text">Created by <a target="_blank" href="https://www.alexis-gousseau.com">Alexis Gousseau</a> and <a target="_blank" href="https://www.gaetan-moreau.fr">Gaëtan Moreau</a>.</p>
         </div>
       </footer>
     </div>
@@ -118,10 +122,11 @@ export default {
       search: '',
       show: [],
       team : [],
+      checkEmptyTeam: true,
       resCharactersEnd: [],
+      resComics: [],
       loading: null,
       loadingModal: true,
-      resComics: [],
     };
   },
 async created() { //Récupère l'ensemble des héros disponibles
@@ -137,14 +142,14 @@ async created() { //Récupère l'ensemble des héros disponibles
 
       for(let s = 0 ; s <= 1500 ; s += 100){ //Récupère le nom, l'id, la description et le thumbnail pour chaque héros (1493)
         this.loading = s
-        if(s == 1500){
+        if(s === 1500){
           this.loadingModal = false;
         }
         const requete = await fetch("https://gateway.marvel.com/v1/public/characters?offset=" + s + "&limit=100ts=" + ts + "&apikey=" + apiKeyPublic + "&hash=" + hash + "");
         var resJson = await requete.json();
         for(let i = 0 ; i < resJson.data.results.length ; i ++){
           if(resJson.data.results[i].description === ""){
-            resJson.data.results[i].description = "Pas de description pour ce héro";
+            resJson.data.results[i].description = "No description for this character";
           }
           this.resCharactersEnd.push({"name":resJson.data.results[i].name, "id":resJson.data.results[i].id, "description":resJson.data.results[i].description, "thumbnail":resJson.data.results[i].thumbnail});
         }
@@ -155,7 +160,9 @@ async created() { //Récupère l'ensemble des héros disponibles
     }
   },
   mounted() { // Récupère l'équipe enregistré en localStorage
-    if(localStorage.team){
+    if(localStorage.team && localStorage.team.length > 2){
+      console.log(localStorage.team.length)
+      this.checkEmptyTeam = false;
       this.team = JSON.parse(localStorage.getItem("team"))
       document.getElementById('teamName').value = localStorage.getItem("teamName")
     }
@@ -216,7 +223,7 @@ async created() { //Récupère l'ensemble des héros disponibles
           this.resComics = [];
           for(let j = 0 ; j < allComics.length ; j ++){
             if(allComics[j].description === null){
-              allComics[j].description = "Pas de description pour ce comic";
+              allComics[j].description = "No description for this comic.";
             }
             if(allComics[j].dates[0].date === oldest){
               this.resComics.push({"name":allComics[j].title, "date":oldest.split("T")[0], "description":allComics[j].description});
@@ -230,23 +237,36 @@ async created() { //Récupère l'ensemble des héros disponibles
           this.comics.push(this.resComics[this.resComics.length - 1]);
         }
         else{
-          this.comics.date = ["Pas d'informations sur les dates"];
+          this.comics= [{"name":allComics[0].title, "date":allDatesComics[0].split("T")[0], "description":allComics[0].description}];
         }   
       }
       else{
         this.comics = [];
-        this.comics.push({"name":"Pas de comics liés", "date":"Pas de date disponible", "description":"Pas de description disponible"})
+        this.comics.push({"name":"No related comics.", "date":"No date available.", "description":"No description available."})
       }
     },
     addToTeam(name) { //Ajoute un héro à l'équipe
+      this.checkEmptyTeam = false;
       this.team = this.team.filter(entry => entry !== name);
       this.team.push(name);
     },
     removeFromTeam(hero){ //Supprime un héro de l'équipe
       if(this.team.includes(hero)) {
         this.team = this.team.filter(entry => entry !== hero);
+        if(this.team.length === 0){
+          this.checkEmptyTeam = true;
+        }
         return; 
       }
+    },
+    removeAllFromTeam(){ //Supprime entièrement l'équipe créée
+      if(this.team.length === 0){
+        this.checkEmptyTeam = true;
+      }
+      this.team = [];
+    },
+    closeModal(){ //Ferme le modal des détails du personnage
+        this.show = [];
     },
     deplaceUp(hero){ //Déplace le héro ciblé de l'équipe vers le haut
       let teamModified = this.team
@@ -271,12 +291,6 @@ async created() { //Récupère l'ensemble des héros disponibles
       }
       this.removeAllFromTeam();
       this.team =  teamModified
-    },
-    removeAllFromTeam(){ //Supprime entièrement l'équipe créée
-      this.team = [];
-    },
-    closeModal(){ //Ferme le modal des détails du personnage
-        this.show = [];
     }
   }
 };
