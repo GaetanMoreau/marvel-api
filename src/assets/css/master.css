@@ -114,7 +114,6 @@ input:focus, button:focus {
     flex-direction: row;
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
     padding: 0;
 }
 .item__list{
